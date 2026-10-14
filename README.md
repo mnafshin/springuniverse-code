@@ -12,7 +12,7 @@ One folder per curriculum module. Every example is small, runnable and covered b
 
 | Module | What's inside |
 |---|---|
-| [module-00-foundations](module-00-foundations) | Library vs framework (Inversion of Control), dependency injection in plain Java, a minimal HTTP + JSON server |
+| [module-00-foundations](module-00-foundations) | F01–F08 companions: IoC, client/server, HTTP, REST CRUD, JSON/Jackson, Maven note, DI, JVM/bytecode |
 
 ## Requirements
 - Java 25 (e.g. Eclipse Temurin)

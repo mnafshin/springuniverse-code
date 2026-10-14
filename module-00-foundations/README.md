@@ -2,15 +2,20 @@
 
 Plain Java, no Spring yet. These are the ideas Spring is built on.
 
-| Package | Idea | Run | Video |
+| Video | Package | Idea | Article |
 |---|---|---|---|
-| `ioc` | **Library vs framework**: you call a library (`LibraryExample`); a framework calls you (`MiniFramework`, a tiny stand-in for Spring MVC's dispatcher) | `MiniFramework.main` | F01 "Library or framework?" |
-| `di` | **Dependency injection in plain words**: `GreetingService` receives its `MessageSource` through the constructor; `ManualWiring` is a hand-made "container" | `ManualWiring.main` | F07 |
-| `http` | **HTTP + JSON**: JDK `HttpServer`, `GET /hello?name=Ada` returns `{"message":"Hello, Ada!","length":11}`, other methods return `405` | `HelloHttpServer.main`, then `curl 'http://localhost:8080/hello?name=Ada'` | F03, F05 |
+| F01 Library or framework? | `ioc` | You call a library (`LibraryExample`); a framework calls you (`MiniFramework`) | §1 |
+| F02 How the web works | `clientserver` | `HttpClient` (client) fetches JSON from a local `HelloHttpServer` (server) | §2 |
+| F03 HTTP request as a letter | `http` | JDK `HttpServer`: method, path, status codes, JSON body | §3 |
+| F04 REST is rules | `rest` | REST-style CRUD on in-memory books (`/books`, `/books/{id}`) | §4 |
+| F05 JSON | `json` | Jackson: objects ↔ JSON; single quotes are invalid | §5 |
+| F06 Maven & Gradle | `maven` | What Maven does for this module (`./mvnw verify`) | §6 |
+| F07 DI in plain words | `di` | Constructor injection + a hand-made "container" | §7 |
+| F08 Java vs the JVM | `jvm` | Bytecode magic `CA FE BA BE`, JVM name, ClassLoader | §8 |
 
 ## Test
 ```bash
 ./mvnw -pl module-00-foundations verify
 ```
 
-Further reading: [Inversion of Control (Martin Fowler)](https://martinfowler.com/bliki/InversionOfControl.html) · [MDN: HTTP overview](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview) · [MDN: JSON](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/JSON) · [Spring IoC container](https://docs.spring.io/spring-framework/reference/core/beans/introduction.html)
+Further reading: [Inversion of Control (Martin Fowler)](https://martinfowler.com/bliki/InversionOfControl.html) · [MDN: How the web works](https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Web_standards/How_the_web_works) · [MDN: HTTP overview](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview) · [MDN: REST](https://developer.mozilla.org/en-US/docs/Glossary/REST) · [MDN: JSON](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/JSON) · [What is Maven?](https://maven.apache.org/what-is-maven.html) · [Spring IoC container](https://docs.spring.io/spring-framework/reference/core/beans/introduction.html) · [dev.java: The JVM](https://dev.java/learn/jvm/)
