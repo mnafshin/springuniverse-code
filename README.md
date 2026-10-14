@@ -1,5 +1,6 @@
 # SpringUniverse code
 
+[![ci](https://github.com/mnafshin/springuniverse-code/actions/workflows/ci.yml/badge.svg)](https://github.com/mnafshin/springuniverse-code/actions/workflows/ci.yml)
 
 
 Companion code for **SpringUniverse**: Java and Spring, explained.
