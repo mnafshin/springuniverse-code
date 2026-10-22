@@ -31,5 +31,6 @@
 
     <modules>
         <module>module-00-foundations</module>
+        <module>module-01-first-boot-app</module>
     </modules>
 </project>

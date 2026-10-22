@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Generated on start.spring.io (Maven, Java 25, Spring Boot 4.1.1, Spring Web).
+         The only change: the parent is this repo's aggregator, which itself extends spring-boot-starter-parent 4.1.1. -->
+    <parent>
+        <groupId>info.mnafshin.springuniverse</groupId>
+        <artifactId>springuniverse-code</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>module-01-first-boot-app</artifactId>
+    <name>Module 1: First Spring Boot app</name>
+    <description>T1.1: Spring Boot 4 from zero, a first @RestController</description>
+
+    <dependencies>
+        <!-- "Spring Web" on start.spring.io: Spring MVC + embedded Tomcat + Jackson 3 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

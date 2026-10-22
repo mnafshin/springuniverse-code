@@ -13,6 +13,7 @@ One folder per curriculum module. Every example is small, runnable and covered b
 | Module | What's inside |
 |---|---|
 | [module-00-foundations](module-00-foundations) | F01–F08 companions: IoC, client/server, HTTP, REST CRUD, JSON/Jackson, Maven note, DI, JVM/bytecode |
+| [module-01-first-boot-app](module-01-first-boot-app) | T1.1: first Spring Boot 4 app from start.spring.io, `@RestController` returning JSON, `@WebMvcTest` + end-to-end tests |
 
 ## Requirements
 - Java 25 (e.g. Eclipse Temurin)
