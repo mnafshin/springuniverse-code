@@ -3,8 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Generated on start.spring.io (Maven, Java 25, Spring Boot 4.1.1, Spring Web).
-         The only change: the parent is this repo's aggregator, which itself extends spring-boot-starter-parent 4.1.1. -->
+    <!-- Generated on start.spring.io (Maven, Java 25, Spring Boot 4.1.1, Spring Web) for T1.1.
+         The parent is this repo's aggregator, which extends spring-boot-starter-parent (4.1.2 since T1.2).
+         Note: no dependency below has a version. The Spring Boot BOM (spring-boot-dependencies) picks them. -->
     <parent>
         <groupId>info.mnafshin.springuniverse</groupId>
         <artifactId>springuniverse-code</artifactId>
@@ -13,7 +14,7 @@
 
     <artifactId>module-01-first-boot-app</artifactId>
     <name>Module 1: First Spring Boot app</name>
-    <description>T1.1: Spring Boot 4 from zero, a first @RestController</description>
+    <description>T1.1: Spring Boot 4 from zero, a first @RestController. T1.2: starters, the Boot BOM, virtual threads</description>
 
     <dependencies>
         <!-- "Spring Web" on start.spring.io: Spring MVC + embedded Tomcat + Jackson 3 -->
@@ -34,6 +35,18 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- T1.2: hand the BOM's version properties to ManagedVersionsTest -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <bom.spring-framework.version>${spring-framework.version}</bom.spring-framework.version>
+                        <bom.tomcat.version>${tomcat.version}</bom.tomcat.version>
+                        <bom.jackson-bom.version>${jackson-bom.version}</bom.jackson-bom.version>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
