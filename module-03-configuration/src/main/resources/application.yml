@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: module-03-configuration
+
+app:
+  signup:
+    welcome-message: "Welcome"
+    daily-limit: 100
+    link-expiry: 30m
