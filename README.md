@@ -16,7 +16,7 @@ One folder per curriculum module. Every example is small, runnable and covered b
 | [module-01-first-boot-app](module-01-first-boot-app) | T1.1: first Spring Boot 4 app from start.spring.io, `@RestController` returning JSON, `@WebMvcTest` + end-to-end tests. T1.2: no versions in the pom (the Boot BOM), BOM-version tests, virtual threads with one property |
 | [module-01-bom-import](module-01-bom-import) | T1.2: the same kind of app without `spring-boot-starter-parent`, importing `spring-boot-dependencies` (scope `import`) |
 | [module-02-di](module-02-di) | T2.1: IoC and dependency injection from first principles. A signup service wired by hand in plain Java (hard-wired, then constructor injection, a fake in a plain unit test, the composition root), then by the Spring container (`@Service`/`@Component`, no `@Autowired`), plus the "no bean" and "two beans" startup errors as tests |
-| [module-03-configuration](module-03-configuration) | T3.1: external configuration. `application.yml`, property sources and precedence (file, environment variable, command line), a validated `@ConfigurationProperties` record with a default, and `@Value` for comparison |
+| [module-02-configuration](module-02-configuration) | T2.2: `@Configuration`, `@Bean` and the `ApplicationContext`. A container created with `AnnotationConfigApplicationContext`, a `@Bean` for `java.time.Clock`, bean names, the CGLIB proxy that keeps `@Bean` methods singletons (and the lite-mode trap as a test), the component-scan base package, `@Import` of a second config class, and the same in `@SpringBootApplication` |
 
 ## Requirements
 - Java 25 (e.g. Eclipse Temurin)
