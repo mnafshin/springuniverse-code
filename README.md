@@ -15,6 +15,7 @@ One folder per curriculum module. Every example is small, runnable and covered b
 | [module-00-foundations](module-00-foundations) | F01–F08 companions: IoC, client/server, HTTP, REST CRUD, JSON/Jackson, Maven note, DI, JVM/bytecode |
 | [module-01-first-boot-app](module-01-first-boot-app) | T1.1: first Spring Boot 4 app from start.spring.io, `@RestController` returning JSON, `@WebMvcTest` + end-to-end tests. T1.2: no versions in the pom (the Boot BOM), BOM-version tests, virtual threads with one property |
 | [module-01-bom-import](module-01-bom-import) | T1.2: the same kind of app without `spring-boot-starter-parent`, importing `spring-boot-dependencies` (scope `import`) |
+| [module-02-di](module-02-di) | T2.1: IoC and dependency injection from first principles. A signup service wired by hand in plain Java (hard-wired, then constructor injection, a fake in a plain unit test, the composition root), then by the Spring container (`@Service`/`@Component`, no `@Autowired`), plus the "no bean" and "two beans" startup errors as tests |
 
 ## Requirements
 - Java 25 (e.g. Eclipse Temurin)

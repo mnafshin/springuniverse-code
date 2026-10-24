@@ -33,5 +33,6 @@
         <module>module-00-foundations</module>
         <module>module-01-first-boot-app</module>
         <module>module-01-bom-import</module>
+        <module>module-02-di</module>
     </modules>
 </project>
