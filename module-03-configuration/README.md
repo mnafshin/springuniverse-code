@@ -10,9 +10,10 @@ One small signup app whose settings live outside the code: `application.yml`, en
 | Short 018 | Any Spring property as an environment variable |
 | Short 019 | Bad config? Make Spring Boot refuse to start |
 | T3.2 Profiles for dev/test/prod, plus a little SpEL that is still useful (tutorial) | `application-{profile}.yml` merged key by key, `spring.profiles.active` (command line or `SPRING_PROFILES_ACTIVE`), the `default` profile, last active profile wins, `@Profile` beans, `@ActiveProfiles` in tests, multi-document YAML, secrets from the environment, `${...}` vs `#{...}` |
-| Short 020 | Profiles: one app, three environments |
+| Short 020 | Profiles: one Spring Boot jar, three environments |
 | Short 021 | Secrets don't belong in application.yml |
-| Short 022 | `${}` or `#{}`: the one SpEL expression you'll actually use |
+| Short 022 | `${}` or `#{}`? The one SpEL expression worth using |
+| Short 023 | Swap a Spring bean per environment with `@Profile` |
 
 Videos: https://www.youtube.com/@springuniverse
 
