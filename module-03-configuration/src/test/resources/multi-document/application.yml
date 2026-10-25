@@ -1,0 +1,13 @@
+# The same idea in one file: documents split by ---, each later one overrides the earlier ones.
+app:
+  signup:
+    welcome-message: "Welcome"
+    daily-limit: 100
+---
+spring:
+  config:
+    activate:
+      on-profile: "prod | staging"
+app:
+  signup:
+    daily-limit: 1000

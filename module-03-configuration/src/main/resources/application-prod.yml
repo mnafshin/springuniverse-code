@@ -1,0 +1,8 @@
+# Profile "prod": loaded on top of application.yml when the prod profile is active.
+app:
+  signup:
+    daily-limit: 1000
+  mail:
+    host: smtp.example.com
+    username: signup
+    # no password here: it comes from the environment (APP_MAIL_PASSWORD) or a mounted secret

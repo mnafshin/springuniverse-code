@@ -1,0 +1,5 @@
+# Profile "test": lives in src/test/resources, so it is only on the classpath when tests run.
+# Activated with @ActiveProfiles("test").
+app:
+  signup:
+    daily-limit: 3

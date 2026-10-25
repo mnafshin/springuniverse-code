@@ -35,5 +35,6 @@
         <module>module-01-bom-import</module>
         <module>module-02-di</module>
         <module>module-02-configuration</module>
+        <module>module-03-configuration</module>
     </modules>
 </project>
