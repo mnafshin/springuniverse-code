@@ -7,10 +7,10 @@ and why Spring Boot refuses circular dependencies.
 | Video | What it shows |
 |---|---|
 | T4.1 Inside the container (tutorial) | `BeanDefinition`s and a `BeanFactoryPostProcessor` that changes one before any bean exists, a `BeanPostProcessor` around the init callbacks, `@PostConstruct` / `afterPropertiesSet()` / `initMethod` and their destroy twins, dependency order and `@DependsOn`, CGLIB vs JDK proxies, Spring Framework 7's `@Proxyable`, the `@Transactional` self-call trap and its fix, and the circular-dependency startup failure |
-| Short 025 | `@PostConstruct` vs the constructor: what runs when |
+| Short 025 | Why is my field null in the constructor? (`@PostConstruct` vs the constructor) |
 | Short 026 | Why your `@Transactional` self-call does nothing |
-| Short 027 | Circular dependency? Spring Boot refuses, and that's good |
-| Short 028 | `@Proxyable`: choose your proxy type (Spring Framework 7) |
+| Short 027 | Circular dependency? Spring Boot refuses to start |
+| Short 028 | `@Proxyable`: choose the proxy type per bean (Spring Framework 7) |
 
 Watch first: T2.2, `@Configuration`, `@Bean` and the ApplicationContext (`module-02-configuration`).
 Videos: https://www.youtube.com/@springuniverse
