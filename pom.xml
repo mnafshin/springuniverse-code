@@ -36,5 +36,6 @@
         <module>module-02-di</module>
         <module>module-02-configuration</module>
         <module>module-03-configuration</module>
+        <module>module-05-autoconfiguration</module>
     </modules>
 </project>
