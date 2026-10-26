@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: module-05-greeting-app
+  main:
+    banner-mode: off

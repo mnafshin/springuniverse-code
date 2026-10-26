@@ -6,6 +6,7 @@ A small signup app plus our own auto-configuration, so you can watch Spring Boot
 |---|---|
 | T5.1 How auto-configuration decides (tutorial) | package `decides`: where the candidates come from, the classpath (`@ConditionalOnClass`), `@ConditionalOnMissingBean` and its trap, `@ConditionalOnBooleanProperty`, reading the `--debug` report |
 | T5.1 v1 (the earlier all-in-one version, kept as raw material): conditions, the conditions report, overriding defaults, modular auto-config in Boot 4 (tutorial) | the `AutoConfiguration.imports` candidate list, `@ConditionalOnClass` / `@ConditionalOnMissingBean` / `@ConditionalOnBooleanProperty`, the `--debug` conditions report, replacing a default `Notifier` and Boot's `JsonMapper`, switching auto-configuration off, Spring Boot 4's modules, testing with `ApplicationContextRunner` |
+| T5.2 Customizing auto-configuration (tutorial) | package `customizing`: replacing a Boot default (`JsonMapper`) and what that costs, a `JsonMapperBuilderCustomizer` instead, excluding an auto-configuration the right way; plus the sibling modules `module-05-greeting-starter` (our own auto-configuration in its own jar, `ApplicationContextRunner` tests) and `module-05-greeting-app` |
 | Short 030 | See every auto-configuration decision: `--debug` |
 | Short 031 | Overriding a Boot default with one bean |
 | Short 032 | `@ConditionalOnMissingBean` in 30 seconds |
@@ -69,6 +70,41 @@ With `-Pjdbc` the candidate list grows from 31 to 44 (`spring-boot-jdbc`, `sprin
 
 The `jdbc` and `h2` profiles are only for running `DatabaseApp`; the tests run without them.
 
+## Package `customizing` (T5.2, one small app per example)
+Same pattern as `decides`: each app is its own `@SpringBootApplication` in its own package, without a web server; it prints what it found and exits. `Order` is the value every JSON example prints.
+
+| Example | Main class | What it shows |
+|---|---|---|
+| 1 | `customizing.compact.CompactJsonApp` → `customizing.pretty.PrettyJsonApp` | Boot's `JsonMapper` writes one line; one `JsonMapper` bean of your own (`PrettyJsonConfig`) and Boot's `jacksonJsonMapper` backs off: indented JSON |
+| 2 | `customizing.pretty.PrettyJsonApp` → `customizing.tweak.TweakJsonApp` | with your own mapper, `spring.jackson.property-naming-strategy=SNAKE_CASE` does nothing; a `JsonMapperBuilderCustomizer` (`IndentConfig`) keeps Boot's mapper and its properties |
+| 3 | `customizing.exclude.wrong.WrongExcludeApp` → `customizing.exclude.right.ExcludeApp` | `exclude = LogNotifier.class` fails (not an auto-configuration class); `exclude = NotifierAutoConfiguration.class` works and the report lists it under Exclusions |
+| 4 | `module-05-greeting-app`: `greetingapp.GreetingApp` | a `Greeter` from our own starter, found through the starter's `AutoConfiguration.imports` file (see `module-05-greeting-starter/README.md`) |
+| 5 | `module-05-greeting-starter` tests | `ApplicationContextRunner`: the wrong setup (`-Ptrap`, fails on purpose) and the right one (3 tests) |
+
+```bash
+R='./mvnw -q -pl module-05-autoconfiguration spring-boot:run -Dspring-boot.run.main-class=info.mnafshin.springuniverse.customizing'
+S='-Dspring-boot.run.arguments=--spring.jackson.property-naming-strategy=SNAKE_CASE'
+$R.compact.CompactJsonApp        # {"customerName":"Ada","itemCount":3}
+$R.pretty.PrettyJsonApp          # indented: "customerName" : "Ada", "itemCount" : 3
+$R.pretty.PrettyJsonApp "$S"     # still "customerName": the property only reaches Boot's own mapper
+$R.tweak.TweakJsonApp "$S"       # indented and "customer_name" : "Ada", "item_count" : 3
+$R.exclude.wrong.WrongExcludeApp # IllegalStateException: The following classes could not be excluded because they are not auto-configuration classes: - ...LogNotifier
+$R.exclude.right.ExcludeApp      # notifier beans: 0
+```
+
+Real report lines (Boot 4.1.2, `--debug`):
+```
+   JacksonAutoConfiguration#jacksonJsonMapper:                       (PrettyJsonApp)
+      Did not match:
+         - @ConditionalOnMissingBean (types: tools.jackson.databind.json.JsonMapper; SearchStrategy: all) found beans of type 'tools.jackson.databind.json.JsonMapper' jsonMapper (OnBeanCondition)
+
+Exclusions:                                                          (ExcludeApp)
+-----------
+    info.mnafshin.springuniverse.notifier.NotifierAutoConfiguration
+```
+
+Spring Boot 4 moved each technology's auto-configuration into its own module, with new packages: Boot 3's `org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration` is now `org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration` (in `spring-boot-jackson`). Code that excludes or imports the old name no longer compiles.
+
 ## Files
 | File | Role |
 |---|---|
@@ -84,6 +120,7 @@ The `jdbc` and `h2` profiles are only for running `DatabaseApp`; the tests run w
 | `SignupControllerTest`, `OverrideTest` (test) | the whole app with and without the `sms` and `pretty` profiles |
 | `ConditionsReportTest` (test) | reads the same `ConditionEvaluationReport` that `--debug` prints |
 | `DecidesExamplesTest` (test) | the six `decides` examples, started the way their `main` methods start them |
+| `CustomizingExamplesTest` (test) | the five `customizing` examples (6 tests) |
 | `CandidatesTest` (test) | the candidate list: ours, Jackson and Tomcat are in it; nothing from JDBC, because that module is not on the classpath |
 
 ## Run

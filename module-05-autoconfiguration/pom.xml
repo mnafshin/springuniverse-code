@@ -11,7 +11,7 @@
 
     <artifactId>module-05-autoconfiguration</artifactId>
     <name>Module 5: Auto-configuration under the hood</name>
-    <description>T5.1: how auto-configuration decides. Conditions, the conditions evaluation report (--debug), overriding a default with your own bean, a small auto-configuration of our own, and Boot 4's modular auto-configuration</description>
+    <description>T5.1: how auto-configuration decides. T5.2: customizing it (package customizing; the starter is in module-05-greeting-starter). Conditions, the conditions evaluation report (--debug), overriding a default with your own bean, a small auto-configuration of our own, and Boot 4's modular auto-configuration</description>
 
     <dependencies>
         <dependency>
@@ -31,6 +31,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- several example apps have a main method; the jar starts the signup app -->
+                    <mainClass>info.mnafshin.springuniverse.autoconfig.AutoConfigApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
