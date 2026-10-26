@@ -7,7 +7,8 @@ and why Spring Boot refuses circular dependencies.
 | Video | What it shows |
 |---|---|
 | T4.1 The Spring bean lifecycle (tutorial) | package `container.beanlife`: five runnable examples, each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency |
-| T4.2 to T4.4 (planned) | bean definitions and post-processors, proxies and the self-call trap, circular dependencies: packages `container.lifecycle`, `container.proxy`, `container.cycle`, `fieldcycle`, `cyclefix` (first shown together in an earlier, unpublished cut of T4.1) |
+| T4.2 Bean post-processors (tutorial) | package `container.postproc`: six runnable examples: the plan (bean definitions) comes before the beans, a `BeanFactoryPostProcessor` that makes a library bean lazy, the `static @Bean` rule (`Menu for null` vs `Menu for Corner Shop`), a `BeanPostProcessor` that sees every bean, a post-processor that returns a wrapper (ask for the interface, not the class), and the built-in annotation post-processors behind `@Autowired` and `@PostConstruct` |
+| T4.3, T4.4 (planned) | proxies and the self-call trap, circular dependencies: packages `container.proxy`, `container.cycle`, `fieldcycle`, `cyclefix` |
 | Short 025 | Why is my field null in the constructor? (`@PostConstruct` vs the constructor) |
 | Short 026 | Why your `@Transactional` self-call does nothing |
 | Short 027 | Circular dependency? Spring Boot refuses to start |
@@ -24,6 +25,16 @@ Videos: https://www.youtube.com/@springuniverse
 | `callbacks` | `PriceCache` with `@PostConstruct` / `afterPropertiesSet()` / `initMethod` and `@PreDestroy` / `destroy()` / `destroyMethod`; `PriceStore` only has `close()`, which a `@Bean` method infers as its destroy method | `CallbacksApp` |
 | `cleanup` | `TempFiles` creates a real temp folder in `@PostConstruct` and deletes it in `@PreDestroy`. `NoCloseApp` never closes the context (no delete), `CloseApp` uses try-with-resources (deleted), `BootCleanupApp` relies on Boot's shutdown hook (stop it with Ctrl+C or `kill PID`: deleted; `kill -9 PID`: not deleted) | `NoCloseApp`, `CloseApp`, `BootCleanupApp` |
 | `order` | `HiddenDependencyConfig`: `PriceSource` reads a table that `Migrations` creates but doesn't depend on it ("table prices is missing!"); `DependsOnConfig` adds `@DependsOn("migrations")`; shutdown runs in reverse | `OrderApp` |
+
+## Package `container.postproc` (T4.2, Spring Framework only, no Boot)
+| Package | Example | Run |
+|---|---|---|
+| `plan` | after `register()` the container only holds bean definitions (class, scope, lazy); `Menu` is created at `refresh()`, the `@Lazy` `ReportJob` stays a recipe | `PlanApp` |
+| `lazyplan` | `ReportJob` (a "library" class, no `@Lazy`) is slow and created at startup (`ShopConfig`); `LazyShopConfig` adds a `static @Bean MakeReportJobLazy` (`BeanFactoryPostProcessor`) that sets `lazyInit` on its definition | `LazyPlanApp` |
+| `staticrule` | `BrokenConfig` declares a `BeanFactoryPostProcessor` with a non-static `@Bean` method: Spring logs an INFO from `ConfigurationClassEnhancer` and `@Value` is never injected (`Menu for null`); `FixedConfig` makes the method `static` (`Menu for Corner Shop`) | `StaticRuleApp` |
+| `tracing` | `TracingPostProcessor` (`BeanPostProcessor`) prints before and after init for every bean; `@PostConstruct` runs between the two calls | `TracingApp` |
+| `wrapper` | `LoggingPostProcessor` returns a JDK proxy around every `PriceService`; `getBean(SimplePriceService.class)` fails with `NoSuchBeanDefinitionException`, `getBean(PriceService.class)` works and every call goes through the wrapper | `WrapperApp` |
+| `builtins` | a bare `GenericApplicationContext`: `@Autowired` and `@PostConstruct` are ignored (`source = null`) until `AnnotationConfigUtils.registerAnnotationConfigProcessors(context)` adds Spring's own post-processors | `BuiltinsApp` |
 
 ## Package `container.lifecycle` (Spring Framework only, no Boot)
 | File | Role |
@@ -56,6 +67,13 @@ Videos: https://www.youtube.com/@springuniverse
 cd module-04-container
 ../mvnw -q dependency:build-classpath -Dmdep.outputFile=cp.txt
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.beanlife.nullfield.NullFieldApp
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.postproc.staticrule.StaticRuleApp
+# -- non-static @Bean method
+# INFO ... @Bean method BrokenConfig.noOpPostProcessor is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. ...
+# Menu for null
+# -- static @Bean method
+# Menu for Corner Shop
+
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.lifecycle.LifecycleApp
 # definition: priceCache scope=singleton lazy=false
 # definition: priceSource scope=singleton lazy=false
@@ -101,6 +119,7 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cyc
 
 ## Tests
 `BeanLifecycleTest` (T4.1: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
+`PostProcessorsTest` (T4.2: the exact output of all six apps, the definition really becomes lazy, the bean really is a JDK proxy),
 `LifecycleOrderTest` (definitions before instances, the init order, lazy on first use, the destroy order),
 `ProxyTest` (CGLIB by default, `@Proxyable` gives a JDK proxy, the self-call has no transaction, the fix has one),
 `CircularDependencyTest` (constructor cycle fails even with the escape hatch, field cycle fails in Boot by default,
@@ -111,6 +130,8 @@ starts with `spring.main.allow-circular-references=true` and in plain Spring Fra
   [Lazy-initialized beans](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-lazy-init.html),
   [Using depends-on](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-dependson.html),
   [Container extension points](https://docs.spring.io/spring-framework/reference/core/beans/factory-extension.html),
+  [Annotation-based container configuration](https://docs.spring.io/spring-framework/reference/core/beans/annotation-config.html),
+  [Bean overview (bean definitions)](https://docs.spring.io/spring-framework/reference/core/beans/definition.html),
   [Proxying mechanisms](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html),
   [Dependency injection: circular dependencies](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html)
 - Spring Boot: [AOP](https://docs.spring.io/spring-boot/reference/features/aop.html),
