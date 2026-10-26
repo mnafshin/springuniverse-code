@@ -11,7 +11,7 @@
 
     <artifactId>module-04-container</artifactId>
     <name>Module 4: Bean lifecycle and container internals</name>
-    <description>T4.1: bean definitions, BeanFactoryPostProcessor, BeanPostProcessor, init/destroy callbacks, creation order, AOP proxies (JDK vs CGLIB, @Proxyable, self-invocation) and circular dependencies</description>
+    <description>T4.1: the bean lifecycle (null field in the constructor, @Lazy, init/destroy callbacks, closing the context, @DependsOn); T4.2-T4.4: bean definitions, BeanFactoryPostProcessor, BeanPostProcessor, init/destroy callbacks, creation order, AOP proxies (JDK vs CGLIB, @Proxyable, self-invocation) and circular dependencies</description>
 
     <dependencies>
         <!-- spring-boot-starter brings spring-context. Package ...container.lifecycle uses only the

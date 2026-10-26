@@ -6,7 +6,8 @@ and why Spring Boot refuses circular dependencies.
 
 | Video | What it shows |
 |---|---|
-| T4.1 Inside the container (tutorial) | `BeanDefinition`s and a `BeanFactoryPostProcessor` that changes one before any bean exists, a `BeanPostProcessor` around the init callbacks, `@PostConstruct` / `afterPropertiesSet()` / `initMethod` and their destroy twins, dependency order and `@DependsOn`, CGLIB vs JDK proxies, Spring Framework 7's `@Proxyable`, the `@Transactional` self-call trap and its fix, and the circular-dependency startup failure |
+| T4.1 The Spring bean lifecycle (tutorial) | package `container.beanlife`: five runnable examples, each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency |
+| T4.2 to T4.4 (planned) | bean definitions and post-processors, proxies and the self-call trap, circular dependencies: packages `container.lifecycle`, `container.proxy`, `container.cycle`, `fieldcycle`, `cyclefix` (first shown together in an earlier, unpublished cut of T4.1) |
 | Short 025 | Why is my field null in the constructor? (`@PostConstruct` vs the constructor) |
 | Short 026 | Why your `@Transactional` self-call does nothing |
 | Short 027 | Circular dependency? Spring Boot refuses to start |
@@ -14,6 +15,15 @@ and why Spring Boot refuses circular dependencies.
 
 Watch first: T2.2, `@Configuration`, `@Bean` and the ApplicationContext (`module-02-configuration`).
 Videos: https://www.youtube.com/@springuniverse
+
+## Package `container.beanlife` (T4.1, Spring Framework only except `cleanup.BootCleanupApp`)
+| Package | Example | Run |
+|---|---|---|
+| `nullfield` | `BrokenPriceCache` uses an `@Autowired` field in its constructor: `source = null`, startup fails. Fix 1 `FixedPriceCache` (`@PostConstruct`), fix 2 `ConstructorPriceCache` (constructor injection) | `NullFieldApp` |
+| `whencreated` | `Menu` and `ReportJob` are created at startup, once (same object twice); `LazyReportJob` (`@Lazy`) is created on first use | `WhenCreatedApp` |
+| `callbacks` | `PriceCache` with `@PostConstruct` / `afterPropertiesSet()` / `initMethod` and `@PreDestroy` / `destroy()` / `destroyMethod`; `PriceStore` only has `close()`, which a `@Bean` method infers as its destroy method | `CallbacksApp` |
+| `cleanup` | `TempFiles` creates a real temp folder in `@PostConstruct` and deletes it in `@PreDestroy`. `NoCloseApp` never closes the context (no delete), `CloseApp` uses try-with-resources (deleted), `BootCleanupApp` relies on Boot's shutdown hook (stop it with Ctrl+C or `kill PID`: deleted; `kill -9 PID`: not deleted) | `NoCloseApp`, `CloseApp`, `BootCleanupApp` |
+| `order` | `HiddenDependencyConfig`: `PriceSource` reads a table that `Migrations` creates but doesn't depend on it ("table prices is missing!"); `DependsOnConfig` adds `@DependsOn("migrations")`; shutdown runs in reverse | `OrderApp` |
 
 ## Package `container.lifecycle` (Spring Framework only, no Boot)
 | File | Role |
@@ -45,6 +55,7 @@ Videos: https://www.youtube.com/@springuniverse
 ./mvnw -pl module-04-container -am -q install -DskipTests
 cd module-04-container
 ../mvnw -q dependency:build-classpath -Dmdep.outputFile=cp.txt
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.beanlife.nullfield.NullFieldApp
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.lifecycle.LifecycleApp
 # definition: priceCache scope=singleton lazy=false
 # definition: priceSource scope=singleton lazy=false
@@ -89,6 +100,7 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cyc
 ```
 
 ## Tests
+`BeanLifecycleTest` (T4.1: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
 `LifecycleOrderTest` (definitions before instances, the init order, lazy on first use, the destroy order),
 `ProxyTest` (CGLIB by default, `@Proxyable` gives a JDK proxy, the self-call has no transaction, the fix has one),
 `CircularDependencyTest` (constructor cycle fails even with the escape hatch, field cycle fails in Boot by default,
@@ -96,9 +108,12 @@ starts with `spring.main.allow-circular-references=true` and in plain Spring Fra
 
 ## Sources
 - Spring Framework: [Customizing the nature of a bean](https://docs.spring.io/spring-framework/reference/core/beans/factory-nature.html),
+  [Lazy-initialized beans](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-lazy-init.html),
+  [Using depends-on](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-dependson.html),
   [Container extension points](https://docs.spring.io/spring-framework/reference/core/beans/factory-extension.html),
   [Proxying mechanisms](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html),
   [Dependency injection: circular dependencies](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html)
 - Spring Boot: [AOP](https://docs.spring.io/spring-boot/reference/features/aop.html),
+  [SpringApplication, application exit](https://docs.spring.io/spring-boot/reference/features/spring-application.html),
   [application properties](https://docs.spring.io/spring-boot/appendix/application-properties/index.html)
   (`spring.main.allow-circular-references`, `spring.aop.proxy-target-class`)
