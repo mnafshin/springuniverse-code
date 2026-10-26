@@ -6,7 +6,7 @@ and why Spring Boot refuses circular dependencies.
 
 | Video | What it shows |
 |---|---|
-| T4.1 The Spring bean lifecycle (tutorial) | package `container.beanlife`: five runnable examples, each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency |
+| T4.1 The Spring bean lifecycle (tutorial) | package `container.shop`: one small shop app built around its price service, in six runnable examples (the last one runs the whole fixed shop from start to stop), each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency. The first render used package `container.beanlife` (kept) |
 | Bean post-processors (video dropped 2026-10-26, code kept) | package `container.postproc`: six runnable examples: the plan (bean definitions) comes before the beans, a `BeanFactoryPostProcessor` that makes a library bean lazy, the `static @Bean` rule (`Menu for null` vs `Menu for Corner Shop`), a `BeanPostProcessor` that sees every bean, a post-processor that returns a wrapper (ask for the interface, not the class), and the built-in annotation post-processors behind `@Autowired` and `@PostConstruct` |
 | T4.2 Proxies and the self-call trap (tutorial) | package `container.proxies`: six runnable examples: a `@Transactional` bean is not your class (`OrderService$$SpringCGLIB$$0`), Boot's CGLIB default vs `@Proxyable(INTERFACES)` (ask for the interface, not the class), a `final` method that skips the proxy (`NullPointerException`), the self-call (`transaction active = false`), the fix with a second bean (`true`), and the same trap with `@Async` (`main` vs `task-1`) |
 | T4.3 Circular dependencies (tutorial) | package `container.cycles`: six runnable examples: a constructor cycle and Spring Boot's cycle report, field injection is still refused and `spring.main.allow-circular-references=true` lets it start (early reference) but can't break a constructor cycle, a half-built bean used in `@PostConstruct` (`NullPointerException`), the fix by extracting `CustomerDirectory`, the fix with an application event, and `@Lazy` on an injection point as a last resort (`CustomerService$$SpringCGLIB$$0`) |
@@ -19,7 +19,17 @@ and why Spring Boot refuses circular dependencies.
 Watch first: T2.2, `@Configuration`, `@Bean` and the ApplicationContext (`module-02-configuration`).
 Videos: https://www.youtube.com/@springuniverse
 
-## Package `container.beanlife` (T4.1, Spring Framework only except `cleanup.BootCleanupApp`)
+## Package `container.shop` (T4.1, one shop app; Spring Framework only except `cleanup.BootCleanupApp`)
+| Package | Example | Run |
+|---|---|---|
+| `nullfield` | the shop's `BrokenPriceCache` uses an `@Autowired` `PriceSource` field in its constructor: `source = null`, startup fails. Fix 1 `FixedPriceCache` (`@PostConstruct`), fix 2 `ConstructorPriceCache` (constructor injection) | `NullFieldApp` |
+| `whencreated` | `PriceCache` and the slow, rarely used `SalesReport` are created at startup, once (same object twice); `LazySalesReport` (`@Lazy`) is created on first use | `WhenCreatedApp` |
+| `callbacks` | `PriceCache` with `@PostConstruct` / `afterPropertiesSet()` / `initMethod` and `@PreDestroy` / `destroy()` / `destroyMethod`; `PriceStore` only has `close()`, which a `@Bean` method infers as its destroy method | `CallbacksApp` |
+| `cleanup` | `PriceExport` writes the nightly price export (`prices.csv`) into a real temp folder in `@PostConstruct` and deletes the folder in `@PreDestroy`. `NoCloseApp` never closes the context (no delete), `CloseApp` uses try-with-resources (deleted), `BootCleanupApp` relies on Boot's shutdown hook (Ctrl+C or `kill PID`: deleted; `kill -9 PID`: not deleted) | `NoCloseApp`, `CloseApp`, `BootCleanupApp` |
+| `order` | `HiddenDependencyConfig`: `PriceSource` reads a table that `Migrations` creates but doesn't depend on it ("table prices is missing!"); `DependsOnConfig` adds `@DependsOn("migrations")`; shutdown runs in reverse | `OrderApp` |
+| `app` | the whole shop app with every fix: `ShopConfig` (`@DependsOn("migrations")`, `@Lazy` `SalesReport`), `PriceCache` (constructor injection + `@PostConstruct`), `PriceExport` (`@PreDestroy`), `ShopApp` closes the context with try-with-resources | `ShopApp` |
+
+## Package `container.beanlife` (first T4.1 render, kept; Spring Framework only except `cleanup.BootCleanupApp`)
 | Package | Example | Run |
 |---|---|---|
 | `nullfield` | `BrokenPriceCache` uses an `@Autowired` field in its constructor: `source = null`, startup fails. Fix 1 `FixedPriceCache` (`@PostConstruct`), fix 2 `ConstructorPriceCache` (constructor injection) | `NullFieldApp` |
@@ -87,7 +97,8 @@ Videos: https://www.youtube.com/@springuniverse
 ./mvnw -pl module-04-container -am -q install -DskipTests
 cd module-04-container
 ../mvnw -q dependency:build-classpath -Dmdep.outputFile=cp.txt
-java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.beanlife.nullfield.NullFieldApp
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.shop.nullfield.NullFieldApp
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.shop.app.ShopApp
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.postproc.staticrule.StaticRuleApp
 # -- non-static @Bean method
 # INFO ... @Bean method BrokenConfig.noOpPostProcessor is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. ...
@@ -157,7 +168,8 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cyc
 ```
 
 ## Tests
-`BeanLifecycleTest` (T4.1: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
+`ShopLifecycleTest` (T4.1, one shop app: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown, the whole shop app start to stop),
+`BeanLifecycleTest` (first T4.1 render: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
 `PostProcessorsTest` (dropped post-processors video: the exact output of all six apps, the definition really becomes lazy, the bean really is a JDK proxy),
 `ProxiesTest` (T4.2: the exact output of all five apps: CGLIB class name, JDK proxy and the failed class lookup, the final-method NPE, false then true, `main` then `task-1`),
 `CyclesTest` (T4.3: the cycle report, the flag can't fix a constructor cycle, the field cycle refused then started with the flag, the half-built bean NPE, both fixes start without the flag, `@Lazy` injects a CGLIB proxy),
