@@ -10,11 +10,11 @@ public class KindsApp {
     public static void main(String[] args) {
         try (ConfigurableApplicationContext context = SpringApplication.run(KindsApp.class, args)) {
             Object refunds = context.getBean(Refunds.class);
-            Object payments = context.getBean(Payments.class);
+            Object paymentBean = context.getBean(Payments.class);
             System.out.println("refundService:  " + refunds.getClass().getName().replace("info.mnafshin.springuniverse.container.proxies.", ""));
             System.out.println("  is a RefundService? " + (refunds instanceof RefundService));
-            System.out.println("paymentService: " + payments.getClass().getName());
-            System.out.println("  is a PaymentService? " + (payments instanceof PaymentService));
+            System.out.println("paymentService: " + paymentBean.getClass().getName());
+            System.out.println("  is a PaymentService? " + (paymentBean instanceof PaymentService));
             System.out.println("-- asking for the class");
             try {
                 context.getBean(PaymentService.class);
@@ -22,7 +22,8 @@ public class KindsApp {
                 System.out.println("failed: " + e.getClass().getSimpleName());
             }
             System.out.println("-- asking for the interface");
-            System.out.println("charge() works: " + context.getBean(Payments.class).charge("A-1"));
+            Payments payments = context.getBean(Payments.class);
+            System.out.println("charge() works: " + payments.charge("A-1"));
         }
     }
 }
