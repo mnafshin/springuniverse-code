@@ -9,7 +9,8 @@ and why Spring Boot refuses circular dependencies.
 | T4.1 The Spring bean lifecycle (tutorial) | package `container.beanlife`: five runnable examples, each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency |
 | T4.2 Bean post-processors (tutorial) | package `container.postproc`: six runnable examples: the plan (bean definitions) comes before the beans, a `BeanFactoryPostProcessor` that makes a library bean lazy, the `static @Bean` rule (`Menu for null` vs `Menu for Corner Shop`), a `BeanPostProcessor` that sees every bean, a post-processor that returns a wrapper (ask for the interface, not the class), and the built-in annotation post-processors behind `@Autowired` and `@PostConstruct` |
 | T4.3 Proxies and the self-call trap (tutorial) | package `container.proxies`: six runnable examples: a `@Transactional` bean is not your class (`OrderService$$SpringCGLIB$$0`), Boot's CGLIB default vs `@Proxyable(INTERFACES)` (ask for the interface, not the class), a `final` method that skips the proxy (`NullPointerException`), the self-call (`transaction active = false`), the fix with a second bean (`true`), and the same trap with `@Async` (`main` vs `task-1`) |
-| T4.4 (planned) | circular dependencies: packages `container.cycle`, `fieldcycle`, `cyclefix` |
+| T4.4 Circular dependencies (tutorial) | package `container.cycles`: six runnable examples: a constructor cycle and Spring Boot's cycle report, field injection is still refused and `spring.main.allow-circular-references=true` lets it start (early reference) but can't break a constructor cycle, a half-built bean used in `@PostConstruct` (`NullPointerException`), the fix by extracting `CustomerDirectory`, the fix with an application event, and `@Lazy` on an injection point as a last resort (`CustomerService$$SpringCGLIB$$0`) |
+| Earlier draft (not a tutorial) | circular dependencies: packages `container.cycle`, `fieldcycle`, `cyclefix` (kept for the unpublished T4.1 v1) |
 | Short 025 | Why is my field null in the constructor? (`@PostConstruct` vs the constructor) |
 | Short 026 | Why your `@Transactional` self-call does nothing |
 | Short 027 | Circular dependency? Spring Boot refuses to start |
@@ -45,6 +46,16 @@ Videos: https://www.youtube.com/@springuniverse
 | `finalmethod` | `BrokenPriceService.price()` is `public final`: CGLIB can't override it, so the call runs on the proxy object itself, whose fields are `null` (`NullPointerException`); `FixedPriceService` drops `final` (`coffee costs 3`). With `--logging.level.org.springframework.aop=info` you also see Spring's WARN from `CglibAopProxy` | `FinalMethodApp` |
 | `selfcall` | `OrderService.checkout()` calls its own `@Transactional save()` through `this`: `transaction active = false`; `FixedOrderService` calls `OrderWriter.save()` through the injected proxy: `true` | `SelfCallApp` |
 | `async` | `ReportService.finish()` calls its own `@Async send()`: it runs on `main`; `FixedReportService` calls `Mailer.send()` in another bean: it runs on `task-1` | `AsyncApp` |
+
+## Package `container.cycles` (T4.4, Spring Boot)
+| Package | Example | Run |
+|---|---|---|
+| `ctor` | `CustomerService` and `InvoiceService` need each other through their constructors: `APPLICATION FAILED TO START`, "form a cycle". With `--spring.main.allow-circular-references=true` it still fails ("could not be broken") | `CtorCycleApp` |
+| `field` | the same cycle with `@Autowired` fields: still refused by default (the report names the fields); with `--spring.main.allow-circular-references=true` it starts and each service holds the other | `FieldCycleApp` |
+| `halfbuilt` | run with `--spring.main.allow-circular-references=true`: `InvoiceService`'s `@PostConstruct` calls the early, half-built `CustomerService`, whose `invoices` field is still `null` (`NullPointerException`) | `HalfBuiltApp` |
+| `extract` | the fix: names move into `CustomerDirectory`; the arrows point one way (`welcome Ada, invoice for Ada`) | `ExtractApp` |
+| `events` | the fix: `InvoiceService` publishes `InvoicePaid` instead of calling back; `CustomerService` has an `@EventListener` | `EventsApp` |
+| `lazy` | last resort: `@Lazy` on `InvoiceService`'s constructor parameter injects a proxy (`CustomerService$$SpringCGLIB$$0`); the cycle is only hidden | `LazyApp` |
 
 ## Package `container.lifecycle` (Spring Framework only, no Boot)
 | File | Role |
@@ -91,6 +102,16 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.pro
 # save(A-2): transaction active = false
 # -- fix: save() in another bean
 # save(A-3): transaction active = true
+
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cycles.field.FieldCycleApp --spring.main.allow-circular-references=true
+# started
+# customers.invoices is the invoice service? true
+# invoices.customers is the customer service? true
+
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cycles.lazy.LazyApp
+# started
+# injected: CustomerService$$SpringCGLIB$$0
+# invoice for Ada
 
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.lifecycle.LifecycleApp
 # definition: priceCache scope=singleton lazy=false
@@ -139,6 +160,7 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cyc
 `BeanLifecycleTest` (T4.1: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
 `PostProcessorsTest` (T4.2: the exact output of all six apps, the definition really becomes lazy, the bean really is a JDK proxy),
 `ProxiesTest` (T4.3: the exact output of all five apps: CGLIB class name, JDK proxy and the failed class lookup, the final-method NPE, false then true, `main` then `task-1`),
+`CyclesTest` (T4.4: the cycle report, the flag can't fix a constructor cycle, the field cycle refused then started with the flag, the half-built bean NPE, both fixes start without the flag, `@Lazy` injects a CGLIB proxy),
 `LifecycleOrderTest` (definitions before instances, the init order, lazy on first use, the destroy order),
 `ProxyTest` (CGLIB by default, `@Proxyable` gives a JDK proxy, the self-call has no transaction, the fix has one),
 `CircularDependencyTest` (constructor cycle fails even with the escape hatch, field cycle fails in Boot by default,
