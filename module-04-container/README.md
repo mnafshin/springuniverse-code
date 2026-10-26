@@ -8,7 +8,8 @@ and why Spring Boot refuses circular dependencies.
 |---|---|
 | T4.1 The Spring bean lifecycle (tutorial) | package `container.beanlife`: five runnable examples, each problem first, then the fix: a `null` field in the constructor (`@PostConstruct`, constructor injection), when singletons are created and `@Lazy`, the order of the three init and destroy callbacks, cleanup that never runs until the container is closed (try-with-resources, the Spring Boot shutdown hook), and `@DependsOn` for a hidden dependency |
 | T4.2 Bean post-processors (tutorial) | package `container.postproc`: six runnable examples: the plan (bean definitions) comes before the beans, a `BeanFactoryPostProcessor` that makes a library bean lazy, the `static @Bean` rule (`Menu for null` vs `Menu for Corner Shop`), a `BeanPostProcessor` that sees every bean, a post-processor that returns a wrapper (ask for the interface, not the class), and the built-in annotation post-processors behind `@Autowired` and `@PostConstruct` |
-| T4.3, T4.4 (planned) | proxies and the self-call trap, circular dependencies: packages `container.proxy`, `container.cycle`, `fieldcycle`, `cyclefix` |
+| T4.3 Proxies and the self-call trap (tutorial) | package `container.proxies`: six runnable examples: a `@Transactional` bean is not your class (`OrderService$$SpringCGLIB$$0`), Boot's CGLIB default vs `@Proxyable(INTERFACES)` (ask for the interface, not the class), a `final` method that skips the proxy (`NullPointerException`), the self-call (`transaction active = false`), the fix with a second bean (`true`), and the same trap with `@Async` (`main` vs `task-1`) |
+| T4.4 (planned) | circular dependencies: packages `container.cycle`, `fieldcycle`, `cyclefix` |
 | Short 025 | Why is my field null in the constructor? (`@PostConstruct` vs the constructor) |
 | Short 026 | Why your `@Transactional` self-call does nothing |
 | Short 027 | Circular dependency? Spring Boot refuses to start |
@@ -35,6 +36,15 @@ Videos: https://www.youtube.com/@springuniverse
 | `tracing` | `TracingPostProcessor` (`BeanPostProcessor`) prints before and after init for every bean; `@PostConstruct` runs between the two calls | `TracingApp` |
 | `wrapper` | `LoggingPostProcessor` returns a JDK proxy around every `PriceService`; `getBean(SimplePriceService.class)` fails with `NoSuchBeanDefinitionException`, `getBean(PriceService.class)` works and every call goes through the wrapper | `WrapperApp` |
 | `builtins` | a bare `GenericApplicationContext`: `@Autowired` and `@PostConstruct` are ignored (`source = null`) until `AnnotationConfigUtils.registerAnnotationConfigProcessors(context)` adds Spring's own post-processors | `BuiltinsApp` |
+
+## Package `container.proxies` (T4.3, Spring Boot, JDBC + in-memory H2 for a transaction manager)
+| Package | Example | Run |
+|---|---|---|
+| `whatis` | `MenuService` (plain) is its own class; `OrderService` has a `@Transactional` method, so the bean is `OrderService$$SpringCGLIB$$0`, a subclass in front of the real object (`AopUtils.isAopProxy`, `AopProxyUtils.ultimateTargetClass`) | `WhatIsApp` |
+| `kinds` | `RefundService` gets Boot's default CGLIB subclass (still a `RefundService`); `PaymentService` has `@Proxyable(INTERFACES)` (Spring Framework 7) and gets a JDK proxy that only implements `Payments`: `getBean(PaymentService.class)` fails with `NoSuchBeanDefinitionException`, `getBean(Payments.class)` works | `KindsApp` |
+| `finalmethod` | `BrokenPriceService.price()` is `public final`: CGLIB can't override it, so the call runs on the proxy object itself, whose fields are `null` (`NullPointerException`); `FixedPriceService` drops `final` (`coffee costs 3`). With `--logging.level.org.springframework.aop=info` you also see Spring's WARN from `CglibAopProxy` | `FinalMethodApp` |
+| `selfcall` | `OrderService.checkout()` calls its own `@Transactional save()` through `this`: `transaction active = false`; `FixedOrderService` calls `OrderWriter.save()` through the injected proxy: `true` | `SelfCallApp` |
+| `async` | `ReportService.finish()` calls its own `@Async send()`: it runs on `main`; `FixedReportService` calls `Mailer.send()` in another bean: it runs on `task-1` | `AsyncApp` |
 
 ## Package `container.lifecycle` (Spring Framework only, no Boot)
 | File | Role |
@@ -73,6 +83,14 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.pos
 # Menu for null
 # -- static @Bean method
 # Menu for Corner Shop
+
+java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.proxies.selfcall.SelfCallApp
+# -- save() from outside
+# save(A-1): transaction active = true
+# -- checkout() calls save()
+# save(A-2): transaction active = false
+# -- fix: save() in another bean
+# save(A-3): transaction active = true
 
 java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.lifecycle.LifecycleApp
 # definition: priceCache scope=singleton lazy=false
@@ -120,6 +138,7 @@ java -cp target/classes:$(cat cp.txt) info.mnafshin.springuniverse.container.cyc
 ## Tests
 `BeanLifecycleTest` (T4.1: the null field and both fixes, eager vs lazy creation, the callback order, close() inference, cleanup only on close, `@DependsOn` order and reverse shutdown),
 `PostProcessorsTest` (T4.2: the exact output of all six apps, the definition really becomes lazy, the bean really is a JDK proxy),
+`ProxiesTest` (T4.3: the exact output of all five apps: CGLIB class name, JDK proxy and the failed class lookup, the final-method NPE, false then true, `main` then `task-1`),
 `LifecycleOrderTest` (definitions before instances, the init order, lazy on first use, the destroy order),
 `ProxyTest` (CGLIB by default, `@Proxyable` gives a JDK proxy, the self-call has no transaction, the fix has one),
 `CircularDependencyTest` (constructor cycle fails even with the escape hatch, field cycle fails in Boot by default,
@@ -133,6 +152,9 @@ starts with `spring.main.allow-circular-references=true` and in plain Spring Fra
   [Annotation-based container configuration](https://docs.spring.io/spring-framework/reference/core/beans/annotation-config.html),
   [Bean overview (bean definitions)](https://docs.spring.io/spring-framework/reference/core/beans/definition.html),
   [Proxying mechanisms](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html),
+  [Using @Transactional (proxy mode, self-invocation)](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html),
+  [Declarative caching annotations](https://docs.spring.io/spring-framework/reference/integration/cache/annotations.html),
+  [Task execution and scheduling (@Async)](https://docs.spring.io/spring-framework/reference/integration/scheduling.html),
   [Dependency injection: circular dependencies](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html)
 - Spring Boot: [AOP](https://docs.spring.io/spring-boot/reference/features/aop.html),
   [SpringApplication, application exit](https://docs.spring.io/spring-boot/reference/features/spring-application.html),
