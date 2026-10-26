@@ -12,7 +12,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Checks every line the T4.3 video shows, in order. */
+/** Checks every line the T4.2 video (proxies) shows, in order. */
 @ExtendWith(OutputCaptureExtension.class)
 class ProxiesTest {
 

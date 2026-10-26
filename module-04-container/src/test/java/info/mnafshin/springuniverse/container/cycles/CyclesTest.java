@@ -15,7 +15,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** Checks every line the T4.4 video shows. */
+/** Checks every line the T4.3 video (circular dependencies) shows. */
 @ExtendWith(OutputCaptureExtension.class)
 class CyclesTest {
 
