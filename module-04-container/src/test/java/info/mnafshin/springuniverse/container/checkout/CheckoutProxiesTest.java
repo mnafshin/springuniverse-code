@@ -6,7 +6,10 @@ import info.mnafshin.springuniverse.container.checkout.cache.CacheApp;
 import info.mnafshin.springuniverse.container.checkout.finalclass.FinalClassApp;
 import info.mnafshin.springuniverse.container.checkout.finalmethod.FinalMethodApp;
 import info.mnafshin.springuniverse.container.checkout.fix.FixApp;
+import info.mnafshin.springuniverse.container.checkout.finalmethod.WhyNullApp;
 import info.mnafshin.springuniverse.container.checkout.kinds.KindsApp;
+import info.mnafshin.springuniverse.container.checkout.mail.MailApp;
+import info.mnafshin.springuniverse.container.checkout.plain.PlainSpringApp;
 import info.mnafshin.springuniverse.container.checkout.retry.RetryApp;
 import info.mnafshin.springuniverse.container.checkout.selfcall.SelfCallApp;
 import info.mnafshin.springuniverse.container.checkout.whatis.WhatIsApp;
@@ -148,5 +151,43 @@ class CheckoutProxiesTest {
                 "-- final class JdkReceiptService, @Proxyable(INTERFACES)");
         assertThat(lines[4]).startsWith("proxy: jdk.proxy").contains("$Proxy");
         assertThat(lines[5]).isEqualTo("receipt A-8, transaction active = true");
+    }
+
+    @Test
+    void theAsyncSelfCallMakesTheCustomerWaitTheMailerDoesNot(CapturedOutput output) throws Exception {
+        MailApp.main(new String[0]);
+        assertThat(lines(output)).containsExactly(
+                "-- checkout A-1",
+                "confirmation A-1 sent on: main",
+                "customer waited: 3.0 s",
+                "-- what did Spring give us?",
+                "mailServer   class: MailServer",
+                "orderService class: OrderService$$SpringCGLIB$$0",
+                "mailServer is a proxy? false",
+                "orderService is a proxy? true",
+                "orderService is an OrderService? true",
+                "the real object behind it: OrderService",
+                "-- fix: ConfirmationMailer, another bean",
+                "-- checkout A-2",
+                "customer waited: 0.0 s",
+                "confirmation A-2 sent on: task-1");
+    }
+
+    @Test
+    void theProxyHasNoPricesTheRealObjectDoes(CapturedOutput output) throws Exception {
+        WhyNullApp.main(new String[0]);
+        assertThat(lines(output)).containsExactly(
+                "orderService class: BrokenOrderService$$SpringCGLIB$$0",
+                "prices in the proxy:       null",
+                "prices in the real object: PriceTable");
+    }
+
+    @Test
+    void plainSpringMakesAJdkProxyForABeanWithAnInterface(CapturedOutput output) {
+        PlainSpringApp.main(new String[0]);
+        String[] lines = output.getOut().lines().filter(l -> !l.contains(" INFO ") && !l.contains(" WARN ")).toArray(String[]::new);
+        assertThat(lines).hasSize(2);
+        assertThat(lines[0]).startsWith("plain Spring, shippingService: jdk.proxy").contains("$Proxy");
+        assertThat(lines[1]).isEqualTo("  is a ShippingService? false");
     }
 }

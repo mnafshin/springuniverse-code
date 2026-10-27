@@ -59,6 +59,9 @@ Videos: https://www.youtube.com/@springuniverse
 | `selfcall` | `OrderService.checkout()` calls its own `@Transactional save()` through `this`: `transaction active = false`, and the failing muffin leaves a half-saved order (`orders 1, order lines 1`); called from outside, the same `save()` rolls back (`orders 0, order lines 0`) | `SelfCallApp` |
 | `fix` | `OrderService.checkout()` calls `OrderWriter.save()` through the injected proxy: `true`, the failed order rolls back, a good order saves `orders 1, order lines 2` | `FixApp` |
 | `async` | `OrderService.checkout()` calls its own `@Async sendConfirmation()`: it runs on `main`; `FixedOrderService` calls `ConfirmationMailer.send()` in another bean: it runs on `task-1` | `AsyncApp` |
+| `mail` | T4.2a cold open: `OrderService.checkout()` calls its own `@Async sendConfirmation()` and a 3-second `MailServer`: `confirmation A-1 sent on: main`, `customer waited: 3.0 s`; the bean is `OrderService$$SpringCGLIB$$0`; `FixedOrderService` calls `ConfirmationMailer.send()` in another bean: `customer waited: 0.0 s`, sent on `task-1` | `MailApp` |
+| `finalmethod` (T4.2b) | `WhyNullApp`: the proxy's `prices` field is `null`, the real object's is set: the proxy is made without our constructor | `WhyNullApp` |
+| `plain` (T4.2b) | the same `ShippingService` in plain Spring Framework (no Boot, `@EnableTransactionManagement`): a JDK proxy `jdk.proxy2.$Proxy19`, `is a ShippingService? false` | `PlainSpringApp` |
 | `app` | the whole checkout: `CheckoutService` calls `OrderWriter.save()` (CGLIB, `@Transactional`), `Payments.charge()` (JDK proxy, `@Proxyable(INTERFACES)`) and `ConfirmationMailer.send()` (`@Async`), each through its proxy; a failed order leaves nothing behind | `CheckoutApp` |
 
 Tests: `CheckoutProxiesTest` (7 tests) checks every line the video shows.
