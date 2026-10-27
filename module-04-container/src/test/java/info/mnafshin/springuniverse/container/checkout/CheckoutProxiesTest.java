@@ -2,9 +2,12 @@ package info.mnafshin.springuniverse.container.checkout;
 
 import info.mnafshin.springuniverse.container.checkout.app.CheckoutApp;
 import info.mnafshin.springuniverse.container.checkout.async.AsyncApp;
+import info.mnafshin.springuniverse.container.checkout.cache.CacheApp;
+import info.mnafshin.springuniverse.container.checkout.finalclass.FinalClassApp;
 import info.mnafshin.springuniverse.container.checkout.finalmethod.FinalMethodApp;
 import info.mnafshin.springuniverse.container.checkout.fix.FixApp;
 import info.mnafshin.springuniverse.container.checkout.kinds.KindsApp;
+import info.mnafshin.springuniverse.container.checkout.retry.RetryApp;
 import info.mnafshin.springuniverse.container.checkout.selfcall.SelfCallApp;
 import info.mnafshin.springuniverse.container.checkout.whatis.WhatIsApp;
 import org.junit.jupiter.api.Test;
@@ -54,7 +57,9 @@ class CheckoutProxiesTest {
                 "-- final total()",
                 "failed: NullPointerException: Cannot invoke \"info.mnafshin.springuniverse.container.checkout.finalmethod.PriceTable.price(String)\" because \"this.prices\" is null",
                 "-- normal total()",
-                "total: 7");
+                "total: 7",
+                "-- private save()",
+                "save(A-9): transaction active = false");
     }
 
     @Test
@@ -105,5 +110,43 @@ class CheckoutProxiesTest {
         assertThat(lines).endsWith("in the database: orders 1, order lines 2", "-- checkout A-8: coffee, muffin",
                 "save(A-8): transaction active = true", "failed: no price for muffin",
                 "in the database: orders 1, order lines 2");
+    }
+    @Test
+    void theCacheableSelfCallLooksUpEveryTimeThePriceCacheOnce(CapturedOutput output) {
+        CacheApp.main(new String[0]);
+        assertThat(lines(output)).containsExactly(
+                "-- total() calls this.price(): coffee, coffee, coffee",
+                "total: 9",
+                "price lookups: 3",
+                "-- fix: PriceCache, another bean",
+                "total: 9",
+                "price lookups: 1");
+    }
+
+    @Test
+    void theRetryableSelfCallFailsOnceThePaymentClientRetries(CapturedOutput output) {
+        RetryApp.main(new String[0]);
+        assertThat(lines(output)).containsExactly(
+                "-- checkout() calls this.charge(): A-6",
+                "charge attempt 1",
+                "failed: payment provider busy",
+                "-- fix: PaymentClient, another bean",
+                "charge attempt 1",
+                "charge attempt 2",
+                "result: A-7 charged");
+    }
+
+    @Test
+    void aFinalClassCantGetACglibProxyButCanGetAJdkProxy(CapturedOutput output) {
+        FinalClassApp.main(new String[0]);
+        String[] lines = output.getOut().lines().filter(l -> !l.startsWith("\t") && !l.contains(" WARN ")
+                && !l.contains(" ERROR ") && !l.contains("Exception:") && !l.isBlank()).toArray(String[]::new);
+        assertThat(lines).hasSize(6);
+        assertThat(lines).startsWith("-- final class ReceiptService, CGLIB proxy",
+                "app failed to start: BeanCreationException",
+                "cause: Cannot subclass final class info.mnafshin.springuniverse.container.checkout.finalclass.ReceiptService",
+                "-- final class JdkReceiptService, @Proxyable(INTERFACES)");
+        assertThat(lines[4]).startsWith("proxy: jdk.proxy").contains("$Proxy");
+        assertThat(lines[5]).isEqualTo("receipt A-8, transaction active = true");
     }
 }

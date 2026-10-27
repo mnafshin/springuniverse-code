@@ -17,6 +17,8 @@ public class FinalMethodApp {
             }
             System.out.println("-- normal total()");
             System.out.println("total: " + context.getBean(FixedOrderService.class).total("coffee", "cake"));
+            System.out.println("-- private save()");
+            System.out.println(context.getBean(PrivateOrderService.class).checkout("A-9"));
         }
     }
 }
