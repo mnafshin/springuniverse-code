@@ -11,7 +11,7 @@
 
     <artifactId>module-05-greeting-app</artifactId>
     <name>Module 5: an app that uses our starter</name>
-    <description>T5.2: an application that only adds module-05-greeting-starter as a dependency and gets a Greeter bean</description>
+    <description>T5.3: an application that only adds module-05-greeting-starter as a dependency and gets a Greeter bean</description>
 
     <dependencies>
         <dependency>
@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>info.mnafshin.springuniverse</groupId>
-            <artifactId>module-05-greeting-starter</artifactId>
+            <artifactId>${greeting.library}</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -36,7 +36,24 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>info.mnafshin.springuniverse.greetingapp.GreetingApp</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <!-- T5.3 cold open: -Plib swaps the starter for the plain library (no auto-configuration) -->
+        <greeting.library>module-05-greeting-starter</greeting.library>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>lib</id>
+            <properties>
+                <greeting.library>module-05-greeting-lib</greeting.library>
+            </properties>
+        </profile>
+    </profiles>
 </project>

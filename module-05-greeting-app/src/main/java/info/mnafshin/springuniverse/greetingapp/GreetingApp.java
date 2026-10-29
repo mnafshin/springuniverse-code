@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 /**
- * T5.2 Example 4: this app only depends on {@code module-05-greeting-starter}. It never defines a
+ * T5.3: this app only depends on {@code module-05-greeting-starter}. It never defines a
  * {@link Greeter}, and its component scan ({@code greetingapp}) never reaches the starter's package
  * ({@code greeting}). The greeter comes from the starter's {@code AutoConfiguration.imports} file.
  */

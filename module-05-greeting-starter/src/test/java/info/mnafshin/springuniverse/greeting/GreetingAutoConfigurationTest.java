@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * T5.2 Example 5, the fix: one {@link ApplicationContextRunner}, three small contexts. The
+ * T5.3, the fix: one {@link ApplicationContextRunner}, three small contexts. The
  * auto-configuration goes in with {@code withConfiguration(AutoConfigurations.of(...))}, so it is
  * processed after the user configuration, just like in a real app.
  */

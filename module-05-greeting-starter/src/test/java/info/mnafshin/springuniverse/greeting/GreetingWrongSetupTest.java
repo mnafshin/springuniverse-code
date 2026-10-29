@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * T5.2 Example 5, the problem. This test FAILS on purpose, so it is tagged {@code trap} and only
+ * T5.3, the problem. This test FAILS on purpose, so it is tagged {@code trap} and only
  * runs with {@code -Ptrap}. The auto-configuration is registered as user configuration, before
  * {@code MyGreeterConfig}, so {@code @ConditionalOnMissingBean} checks too early (the trap from
  * T5.1) and the context ends up with two greeters. {@link GreetingAutoConfigurationTest} shows the fix.

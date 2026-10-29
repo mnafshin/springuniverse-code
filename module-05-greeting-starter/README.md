@@ -1,4 +1,4 @@
-# Module 5: a starter of our own (T5.2)
+# Module 5: a starter of our own (T5.3)
 
 A library jar that auto-configures a `Greeter`, written the way Spring Boot writes its own modules. The app that uses it is `module-05-greeting-app`.
 
