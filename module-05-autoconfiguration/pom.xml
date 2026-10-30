@@ -61,5 +61,64 @@
                 </dependency>
             </dependencies>
         </profile>
+        <!-- T5.1 v5: our own small DataSource auto-configuration (module-05-shop-datasource), plus H2 for it.
+             src/mydb/java adds the shop's own DataSource bean, active only with the Spring profile "owndb". -->
+        <profile>
+            <id>mydb</id>
+            <dependencies>
+                <dependency>
+                    <groupId>info.mnafshin.springuniverse</groupId>
+                    <artifactId>module-05-shop-datasource</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>add-mydb-source</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/mydb/java</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>add-mydb-test-source</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/mydb-test/java</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- with our data source on the classpath, the default tests (which expect no data source) do not
+                         apply: this profile runs only its own test -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <test>ShopMyDataSourceTest</test>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

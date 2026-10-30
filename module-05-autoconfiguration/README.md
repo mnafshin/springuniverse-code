@@ -193,3 +193,39 @@ class (`@ConditionalOnBooleanProperty`) and one on its bean method (`@Conditiona
 # notifier: sms
 ```
 Checked by `ShopAppTest.theSameAutoConfigurationDecidesBothWays`.
+
+### Our own DataSource auto-configuration (T5.1 v5)
+`module-05-shop-datasource` holds `shopdb.MyDataSourceAutoConfiguration`, a hand-written copy of the shape of Spring Boot's
+`DataSourceAutoConfiguration`: `@ConditionalOnClass(JdbcDataSource.class)` on the class (is H2 on the classpath?) and
+`@ConditionalOnMissingBean` on its `@Bean dataSource()` method (does the app already have a DataSource?). It is listed in that
+module's `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. The Maven profile `mydb` of this module
+adds it and H2 to the shop, plus `src/mydb/java` (`ShopDataSourceConfig`, the shop's own DataSource, active with the Spring profile `owndb`).
+
+```bash
+./mvnw -q -pl module-05-shop-datasource install
+./mvnw -q -Pmydb -pl module-05-autoconfiguration compile dependency:build-classpath -Dmdep.outputFile=target/cp-mydb.txt
+cd module-05-autoconfiguration
+CP=target/classes:$(cat target/cp-mydb.txt)
+
+# run 1: ours creates the data source
+java -cp "$CP" info.mnafshin.springuniverse.decides.shop.ShopApp --debug
+#    MyDataSourceAutoConfiguration matched:
+#       - @ConditionalOnClass found required class 'org.h2.jdbcx.JdbcDataSource' (OnClassCondition)
+#    MyDataSourceAutoConfiguration#dataSource matched:
+#       - @ConditionalOnMissingBean (types: javax.sql.DataSource; SearchStrategy: all) did not find any beans (OnBeanCondition)
+# candidates: 32
+# notifier: log
+# data sources: 1
+#   jdbc:h2:mem:ours
+
+# run 2: the shop defines its own DataSource, ours backs off
+java -cp "$CP" info.mnafshin.springuniverse.decides.shop.ShopApp --debug --spring.profiles.active=owndb
+#    MyDataSourceAutoConfiguration matched:              (the class still matches)
+#    MyDataSourceAutoConfiguration#dataSource:
+#       Did not match:
+#          - @ConditionalOnMissingBean (types: javax.sql.DataSource; SearchStrategy: all) found beans of type 'javax.sql.DataSource' shopDataSource (OnBeanCondition)
+# data sources: 1
+#   jdbc:h2:mem:shop
+```
+Checked by `MyDataSourceAutoConfigurationTest` (module-05-shop-datasource, 3 tests) and, with `./mvnw -Pmydb -pl module-05-autoconfiguration verify`,
+by `ShopMyDataSourceTest` (both runs). The default build of this module does not include the `mydb` profile, so its other tests are unchanged.
