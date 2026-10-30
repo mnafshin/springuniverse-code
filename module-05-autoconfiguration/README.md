@@ -168,3 +168,28 @@ Spring Boot 4 is modular: this app (`spring-boot-starter-webmvc`) has 30 auto-co
 ```
 
 Docs: [Auto-configuration](https://docs.spring.io/spring-boot/reference/using/auto-configuration.html) · [Creating your own auto-configuration](https://docs.spring.io/spring-boot/reference/features/developing-auto-configuration.html) · [Troubleshoot auto-configuration](https://docs.spring.io/spring-boot/how-to/application.html#howto.application.troubleshoot-auto-configuration) · [Spring Boot 4.0 migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide)
+
+## Package `decides.shop` (T5.1 v3/v4: one shop app for the whole video)
+`decides.shop.ShopApp` prints three lines on every run: `candidates`, `notifier`, `data sources` (see its javadoc for the runs).
+
+Inside one candidate (T5.1 v4): `notifier.NotifierAutoConfiguration` is a hand-written auto-configuration, listed in this
+module's `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. It has one condition on the
+class (`@ConditionalOnBooleanProperty`) and one on its bean method (`@ConditionalOnMissingBean`). Watch it decide both ways:
+
+```bash
+./mvnw -q -pl module-05-autoconfiguration spring-boot:run -Dspring-boot.run.main-class=info.mnafshin.springuniverse.decides.shop.ShopApp \
+  -Dspring-boot.run.arguments=--debug
+#    NotifierAutoConfiguration matched:
+#       - @ConditionalOnBooleanProperty (notifier.enabled=true) matched (OnPropertyCondition)
+#    NotifierAutoConfiguration#notifier matched:
+#       - @ConditionalOnMissingBean (types: info.mnafshin.springuniverse.notifier.Notifier; SearchStrategy: all) did not find any beans (OnBeanCondition)
+# notifier: log
+
+# the same, plus -Dspring-boot.run.profiles=sms (the shop's own notifier bean):
+#    NotifierAutoConfiguration matched:                  (the class still matches)
+#    NotifierAutoConfiguration#notifier:
+#       Did not match:
+#          - @ConditionalOnMissingBean (...) found beans of type 'info.mnafshin.springuniverse.notifier.Notifier' smsNotifier (OnBeanCondition)
+# notifier: sms
+```
+Checked by `ShopAppTest.theSameAutoConfigurationDecidesBothWays`.
