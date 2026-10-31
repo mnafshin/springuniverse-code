@@ -39,6 +39,18 @@ class MyDataSourceAutoConfigurationTest {
             .run(context -> assertThat(context).doesNotHaveBean(MyDataSourceAutoConfiguration.class).doesNotHaveBean(DataSource.class));
     }
 
+    @Test
+    void thePropertySwitchesTheWholeClassOff() {
+        runner.withPropertyValues("shop.datasource.enabled=false")
+            .run(context -> assertThat(context).doesNotHaveBean(MyDataSourceAutoConfiguration.class).doesNotHaveBean(DataSource.class));
+    }
+
+    @Test
+    void aTypoInThePropertyNameChangesNothing() {
+        runner.withPropertyValues("shop.datasource.enable=false")
+            .run(context -> assertThat(context).hasSingleBean(DataSource.class).hasBean("dataSource"));
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class ShopDataSource {
 

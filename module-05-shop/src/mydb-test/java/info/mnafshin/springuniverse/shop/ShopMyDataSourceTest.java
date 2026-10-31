@@ -43,6 +43,19 @@ class ShopMyDataSourceTest {
         }
     }
 
+    @Test
+    void theExactPropertyNameDecides() {
+        String type = MyDataSourceAutoConfiguration.class.getName();
+        try (ConfigurableApplicationContext context = run("--shop.datasource.enable=false")) {
+            assertThat(context.getBeansOfType(DataSource.class)).containsOnlyKeys("dataSource");
+        }
+        try (ConfigurableApplicationContext context = run("--shop.datasource.enabled=false")) {
+            ConditionEvaluationReport report = ConditionEvaluationReport.get(context.getBeanFactory());
+            assertThat(report.getConditionAndOutcomesBySource().get(type).isFullMatch()).isFalse();
+            assertThat(context.getBeansOfType(DataSource.class)).isEmpty();
+        }
+    }
+
     private static String url(DataSource dataSource) throws Exception {
         try (Connection connection = dataSource.getConnection()) {
             return connection.getMetaData().getURL();

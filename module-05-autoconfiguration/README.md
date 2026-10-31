@@ -169,63 +169,7 @@ Spring Boot 4 is modular: this app (`spring-boot-starter-webmvc`) has 30 auto-co
 
 Docs: [Auto-configuration](https://docs.spring.io/spring-boot/reference/using/auto-configuration.html) · [Creating your own auto-configuration](https://docs.spring.io/spring-boot/reference/features/developing-auto-configuration.html) · [Troubleshoot auto-configuration](https://docs.spring.io/spring-boot/how-to/application.html#howto.application.troubleshoot-auto-configuration) · [Spring Boot 4.0 migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide)
 
-## Package `decides.shop` (T5.1 v3/v4: one shop app for the whole video)
-`decides.shop.ShopApp` prints three lines on every run: `candidates`, `notifier`, `data sources` (see its javadoc for the runs).
-
-Inside one candidate (T5.1 v4): `notifier.NotifierAutoConfiguration` is a hand-written auto-configuration, listed in this
-module's `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. It has one condition on the
-class (`@ConditionalOnBooleanProperty`) and one on its bean method (`@ConditionalOnMissingBean`). Watch it decide both ways:
-
-```bash
-./mvnw -q -pl module-05-autoconfiguration spring-boot:run -Dspring-boot.run.main-class=info.mnafshin.springuniverse.decides.shop.ShopApp \
-  -Dspring-boot.run.arguments=--debug
-#    NotifierAutoConfiguration matched:
-#       - @ConditionalOnBooleanProperty (notifier.enabled=true) matched (OnPropertyCondition)
-#    NotifierAutoConfiguration#notifier matched:
-#       - @ConditionalOnMissingBean (types: info.mnafshin.springuniverse.notifier.Notifier; SearchStrategy: all) did not find any beans (OnBeanCondition)
-# notifier: log
-
-# the same, plus -Dspring-boot.run.profiles=sms (the shop's own notifier bean):
-#    NotifierAutoConfiguration matched:                  (the class still matches)
-#    NotifierAutoConfiguration#notifier:
-#       Did not match:
-#          - @ConditionalOnMissingBean (...) found beans of type 'info.mnafshin.springuniverse.notifier.Notifier' smsNotifier (OnBeanCondition)
-# notifier: sms
-```
-Checked by `ShopAppTest.theSameAutoConfigurationDecidesBothWays`.
-
-### Our own DataSource auto-configuration (T5.1 v5)
-`module-05-shop-datasource` holds `shopdb.MyDataSourceAutoConfiguration`, a hand-written copy of the shape of Spring Boot's
-`DataSourceAutoConfiguration`: `@ConditionalOnClass(JdbcDataSource.class)` on the class (is H2 on the classpath?) and
-`@ConditionalOnMissingBean` on its `@Bean dataSource()` method (does the app already have a DataSource?). It is listed in that
-module's `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. The Maven profile `mydb` of this module
-adds it and H2 to the shop, plus `src/mydb/java` (`ShopDataSourceConfig`, the shop's own DataSource, active with the Spring profile `owndb`).
-
-```bash
-./mvnw -q -pl module-05-shop-datasource install
-./mvnw -q -Pmydb -pl module-05-autoconfiguration compile dependency:build-classpath -Dmdep.outputFile=target/cp-mydb.txt
-cd module-05-autoconfiguration
-CP=target/classes:$(cat target/cp-mydb.txt)
-
-# run 1: ours creates the data source
-java -cp "$CP" info.mnafshin.springuniverse.decides.shop.ShopApp --debug
-#    MyDataSourceAutoConfiguration matched:
-#       - @ConditionalOnClass found required class 'org.h2.jdbcx.JdbcDataSource' (OnClassCondition)
-#    MyDataSourceAutoConfiguration#dataSource matched:
-#       - @ConditionalOnMissingBean (types: javax.sql.DataSource; SearchStrategy: all) did not find any beans (OnBeanCondition)
-# candidates: 32
-# notifier: log
-# data sources: 1
-#   jdbc:h2:mem:ours
-
-# run 2: the shop defines its own DataSource, ours backs off
-java -cp "$CP" info.mnafshin.springuniverse.decides.shop.ShopApp --debug --spring.profiles.active=owndb
-#    MyDataSourceAutoConfiguration matched:              (the class still matches)
-#    MyDataSourceAutoConfiguration#dataSource:
-#       Did not match:
-#          - @ConditionalOnMissingBean (types: javax.sql.DataSource; SearchStrategy: all) found beans of type 'javax.sql.DataSource' shopDataSource (OnBeanCondition)
-# data sources: 1
-#   jdbc:h2:mem:shop
-```
-Checked by `MyDataSourceAutoConfigurationTest` (module-05-shop-datasource, 3 tests) and, with `./mvnw -Pmydb -pl module-05-autoconfiguration verify`,
-by `ShopMyDataSourceTest` (both runs). The default build of this module does not include the `mydb` profile, so its other tests are unchanged.
+## The T5.1 shop app moved
+The shop app of T5.1 (v3 to v5: `decides.shop.ShopApp`, its `mydb` profile and `ShopDataSourceConfig`) now lives in its own
+module, [module-05-shop](../module-05-shop), so its classpath has only Spring Boot's candidates plus, with `-Pmydb`, our own
+`MyDataSourceAutoConfiguration`. `NotifierAutoConfiguration` stays here for the `decides`, `tuning` and `customizing` examples.
