@@ -1,4 +1,4 @@
-package info.mnafshin.springuniverse.decides.shop;
+package info.mnafshin.springuniverse.shop;
 
 import javax.sql.DataSource;
 
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * T5.1 v5, run 2: the shop defines its own data source (Spring profile {@code owndb}, Maven profile {@code mydb}).
+ * T5.1, run 2: the shop defines its own data source (Spring profile {@code owndb}, Maven profile {@code mydb}).
  * {@code MyDataSourceAutoConfiguration}'s {@code @ConditionalOnMissingBean} finds this bean, so ours backs off.
  */
 @Configuration(proxyBeanMethods = false)

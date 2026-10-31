@@ -11,9 +11,9 @@
 
     <artifactId>module-05-shop-datasource</artifactId>
     <name>Module 5: our own small DataSource auto-configuration</name>
-    <description>T5.1 v5 "inside one auto-configuration": MyDataSourceAutoConfiguration, the same shape as Spring Boot's own
+    <description>T5.1 "inside one auto-configuration": MyDataSourceAutoConfiguration, the same shape as Spring Boot's own
         DataSourceAutoConfiguration, just small (@ConditionalOnClass on the class, @ConditionalOnMissingBean on the bean).
-        The shop app (module-05-autoconfiguration) adds it with -Pmydb.</description>
+        The shop app (module-05-shop) adds it with -Pmydb.</description>
 
     <dependencies>
         <dependency>

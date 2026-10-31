@@ -39,6 +39,7 @@
         <module>module-04-container</module>
         <module>module-05-autoconfiguration</module>
         <module>module-05-shop-datasource</module>
+        <module>module-05-shop</module>
         <module>module-05-greeting-lib</module>
         <module>module-05-greeting-starter</module>
         <module>module-05-greeting-app</module>
