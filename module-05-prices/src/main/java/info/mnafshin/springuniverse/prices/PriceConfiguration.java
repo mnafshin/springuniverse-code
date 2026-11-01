@@ -1,9 +1,9 @@
 package info.mnafshin.springuniverse.prices;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@AutoConfiguration
 public class PriceConfiguration {
 
     @Bean
