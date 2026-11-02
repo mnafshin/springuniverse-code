@@ -19,8 +19,8 @@ class ShopAppTest {
     ServerProperties server;
 
     @Test
-    void typoBindsNothing() {
-        assertThat(server.getPort()).isNull();
+    void portIsBoundFromTheProperty() {
+        assertThat(server.getPort()).isEqualTo(9090);
     }
 
 }
