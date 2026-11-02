@@ -42,6 +42,7 @@
         <module>module-05-shop</module>
         <module>module-05-web-shop</module>
         <module>module-05-shop-settings</module>
+        <module>module-05-port-typo</module>
         <module>module-05-greeting-lib</module>
         <module>module-05-greeting-starter</module>
         <module>module-05-greeting-app</module>
