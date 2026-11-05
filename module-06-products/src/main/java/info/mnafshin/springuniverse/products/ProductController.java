@@ -8,9 +8,11 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,6 +44,21 @@ class ProductController {
         Product p = new Product(id, request.name(), request.price());
         products.put(id, p);
         return ResponseEntity.created(URI.create("/products/" + id)).body(p);
+    }
+
+    @PutMapping("/products/{id}")
+    ResponseEntity<Product> change(@PathVariable Long id, @RequestBody ProductRequest request) {
+        if (!products.containsKey(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        Product p = new Product(id, request.name(), request.price());
+        products.put(id, p);
+        return ResponseEntity.ok(p);
+    }
+
+    @DeleteMapping("/products/{id}")
+    ResponseEntity<Void> remove(@PathVariable Long id) {
+        return products.remove(id) != null ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
 }

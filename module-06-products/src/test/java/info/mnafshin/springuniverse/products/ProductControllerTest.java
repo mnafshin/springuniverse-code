@@ -1,7 +1,9 @@
 package info.mnafshin.springuniverse.products;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +54,37 @@ class ProductControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/products/3"))
                 .andExpect(jsonPath("$.id").value(3));
+    }
+
+    @Test
+    void changesThePrice() throws Exception {
+        this.mvc.perform(put("/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Coffee\",\"price\":4.10}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").value(4.10));
+    }
+
+    @Test
+    void changeMissingIsNotFound() throws Exception {
+        this.mvc.perform(put("/products/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Coffee\",\"price\":4.10}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removesTea() throws Exception {
+        this.mvc.perform(delete("/products/2"))
+                .andExpect(status().isNoContent());
+        this.mvc.perform(get("/products/2"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removeMissingIsNotFound() throws Exception {
+        this.mvc.perform(delete("/products/99"))
+                .andExpect(status().isNotFound());
     }
 
 }
