@@ -1,6 +1,7 @@
 package info.mnafshin.springuniverse.products;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -9,6 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,6 +34,14 @@ class ProductController {
     ResponseEntity<Product> one(@PathVariable Long id) {
         Product p = products.get(id);
         return p != null ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/products")
+    ResponseEntity<Product> add(@RequestBody ProductRequest request) {
+        long id = nextId.getAndIncrement();
+        Product p = new Product(id, request.name(), request.price());
+        products.put(id, p);
+        return ResponseEntity.created(URI.create("/products/" + id)).body(p);
     }
 
 }
