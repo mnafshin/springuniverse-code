@@ -22,4 +22,15 @@ class PriceConfigurationTest {
         });
     }
 
+    @Test
+    void stepsAsideWhenTheAppHasItsOwn() {
+        this.runner.withBean("euroPrices", PriceFormatter.class, () -> new PriceFormatter("EUR"))
+            .run((context) -> {
+                assertThat(context).hasSingleBean(PriceFormatter.class);
+                assertThat(context).hasBean("euroPrices");
+                assertThat(context).doesNotHaveBean("priceFormatter");
+                assertThat(context.getBean(PriceFormatter.class).format(new BigDecimal("4.5"))).isEqualTo("4.50 EUR");
+            });
+    }
+
 }
