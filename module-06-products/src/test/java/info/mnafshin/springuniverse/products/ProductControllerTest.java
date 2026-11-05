@@ -25,4 +25,17 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Coffee"));
     }
 
+    @Test
+    void readsCoffee() throws Exception {
+        this.mvc.perform(get("/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Coffee"));
+    }
+
+    @Test
+    void missingProductIsNotFound() throws Exception {
+        this.mvc.perform(get("/products/99"))
+                .andExpect(status().isNotFound());
+    }
+
 }

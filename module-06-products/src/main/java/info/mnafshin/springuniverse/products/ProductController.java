@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,6 +25,12 @@ class ProductController {
     @GetMapping("/products")
     List<Product> all() {
         return List.copyOf(products.values());
+    }
+
+    @GetMapping("/products/{id}")
+    ResponseEntity<Product> one(@PathVariable Long id) {
+        Product p = products.get(id);
+        return p != null ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
     }
 
 }
