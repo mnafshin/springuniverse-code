@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +41,7 @@ class ProductController {
     }
 
     @PostMapping("/products")
-    ResponseEntity<Product> add(@RequestBody ProductRequest request) {
+    ResponseEntity<Product> add(@Valid @RequestBody ProductRequest request) {
         long id = nextId.getAndIncrement();
         Product p = new Product(id, request.name(), request.price());
         products.put(id, p);
@@ -47,7 +49,7 @@ class ProductController {
     }
 
     @PutMapping("/products/{id}")
-    ResponseEntity<Product> change(@PathVariable Long id, @RequestBody ProductRequest request) {
+    ResponseEntity<Product> change(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         if (!products.containsKey(id)) {
             return ResponseEntity.notFound().build();
         }

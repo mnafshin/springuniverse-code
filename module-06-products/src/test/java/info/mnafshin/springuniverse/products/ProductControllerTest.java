@@ -87,4 +87,23 @@ class ProductControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void rejectsABlankNameAndANegativePrice() throws Exception {
+        this.mvc.perform(post("/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"price\":-1}"))
+                .andExpect(status().isBadRequest());
+        this.mvc.perform(get("/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void rejectsABadChange() throws Exception {
+        this.mvc.perform(put("/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"price\":-1}"))
+                .andExpect(status().isBadRequest());
+    }
+
 }
