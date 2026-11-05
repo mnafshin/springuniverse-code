@@ -45,6 +45,7 @@
         <module>module-05-prices</module>
         <module>module-05-price-shop</module>
         <module>module-05-shop-exclude</module>
+        <module>module-05-port-typo</module>
         <module>module-05-greeting-lib</module>
         <module>module-05-greeting-starter</module>
         <module>module-05-greeting-app</module>
