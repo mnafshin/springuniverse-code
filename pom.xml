@@ -49,5 +49,6 @@
         <module>module-05-greeting-lib</module>
         <module>module-05-greeting-starter</module>
         <module>module-05-greeting-app</module>
+        <module>module-06-products</module>
     </modules>
 </project>
