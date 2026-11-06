@@ -48,7 +48,12 @@ class ProductControllerTest {
     void missingProductIsNotFound() throws Exception {
         this.mvc.perform(get("/products/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.detail").value("Product 99 was not found"))
+                .andExpect(jsonPath("$.instance").value("/products/99"))
+                .andExpect(jsonPath("$.type").doesNotExist());
     }
 
     @Test
@@ -85,7 +90,7 @@ class ProductControllerTest {
                 .andExpect(status().isNoContent());
         this.mvc.perform(get("/products/2"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(jsonPath("$.detail").value("Product 2 was not found"));
     }
 
     @Test

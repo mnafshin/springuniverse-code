@@ -37,7 +37,10 @@ class ProductController {
     @GetMapping("/products/{id}")
     ResponseEntity<Product> one(@PathVariable Long id) {
         Product p = products.get(id);
-        return p != null ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
+        if (p == null) {
+            throw new ProductNotFoundException(id);
+        }
+        return ResponseEntity.ok(p);
     }
 
     @PostMapping("/products")
