@@ -9,9 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 /**
- * Hits the embedded server. MockMvc records the 400 status from the dispatcher
- * but does not dispatch to Boot's /error controller, so the classic JSON body
- * is only visible over HTTP.
+ * Hits the embedded server so error bodies match curl. MockMvc does not dispatch
+ * to Boot's /error page, which is where the classic JSON used to be written.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
@@ -29,23 +28,20 @@ class ProductErrorHttpTest {
     }
 
     @Test
-    void invalidPostIsClassicBootJson() {
+    void invalidPostIsProblemDetailWithoutFieldErrors() {
         this.client.post().uri("/products")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"name\":\"\",\"price\":-1}")
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
+                .jsonPath("$.detail").isEqualTo("Invalid request content.")
+                .jsonPath("$.instance").isEqualTo("/products")
                 .jsonPath("$.status").isEqualTo(400)
-                .jsonPath("$.error").isEqualTo("Bad Request")
-                .jsonPath("$.path").isEqualTo("/products")
-                .jsonPath("$.timestamp").exists()
-                .jsonPath("$.message").doesNotExist()
-                .jsonPath("$.title").doesNotExist()
-                .jsonPath("$.detail").doesNotExist()
+                .jsonPath("$.title").isEqualTo("Bad Request")
                 .jsonPath("$.type").doesNotExist()
-                .jsonPath("$.instance").doesNotExist();
+                .jsonPath("$.errors").doesNotExist();
     }
 
 }

@@ -100,7 +100,13 @@ class ProductControllerTest {
         this.mvc.perform(post("/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"\",\"price\":-1}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.detail").value("Invalid request content."))
+                .andExpect(jsonPath("$.instance").value("/products"))
+                .andExpect(jsonPath("$.type").doesNotExist());
         this.mvc.perform(get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
