@@ -27,9 +27,11 @@ class ProductErrorHttpTest {
     private ApplicationContext context;
 
     @Test
-    void bootProblemDetailsHandlerStaysRegistered() {
+    void extendingTheHandlerMakesBootBackOff() {
+        assertThat(this.context.getEnvironment().getProperty("spring.mvc.problemdetails.enabled")).isEqualTo("true");
+        assertThat(this.context.containsBean("problemDetailsExceptionHandler")).isFalse();
         assertThat(this.context.getBeanNamesForType(ResponseEntityExceptionHandler.class))
-                .containsExactly("problemDetailsExceptionHandler");
+                .containsExactly("productExceptionHandler");
     }
 
     @Test
@@ -59,7 +61,7 @@ class ProductErrorHttpTest {
     }
 
     @Test
-    void invalidPostIsProblemDetailWithoutFieldErrors() {
+    void invalidPostNamesTheFields() {
         this.client.post().uri("/products")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"name\":\"\",\"price\":-1}")
@@ -72,7 +74,23 @@ class ProductErrorHttpTest {
                 .jsonPath("$.status").isEqualTo(400)
                 .jsonPath("$.title").isEqualTo("Bad Request")
                 .jsonPath("$.type").doesNotExist()
-                .jsonPath("$.errors").doesNotExist();
+                .jsonPath("$.properties").doesNotExist()
+                .jsonPath("$.errors.name").isEqualTo("must not be blank")
+                .jsonPath("$.errors.price").isEqualTo("must be greater than 0");
+    }
+
+    @Test
+    void addsCocoa() {
+        this.client.post().uri("/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"name\":\"Cocoa\",\"price\":3.90}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().location("/products/3")
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(3)
+                .jsonPath("$.name").isEqualTo("Cocoa")
+                .jsonPath("$.price").isEqualTo(3.90);
     }
 
 }

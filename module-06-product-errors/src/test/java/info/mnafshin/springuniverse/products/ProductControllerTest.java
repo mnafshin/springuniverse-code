@@ -111,7 +111,9 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.title").value("Bad Request"))
                 .andExpect(jsonPath("$.detail").value("Invalid request content."))
                 .andExpect(jsonPath("$.instance").value("/products"))
-                .andExpect(jsonPath("$.type").doesNotExist());
+                .andExpect(jsonPath("$.type").doesNotExist())
+                .andExpect(jsonPath("$.errors.name").value("must not be blank"))
+                .andExpect(jsonPath("$.errors.price").value("must be greater than 0"));
         this.mvc.perform(get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
