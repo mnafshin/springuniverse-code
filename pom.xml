@@ -50,5 +50,6 @@
         <module>module-05-greeting-starter</module>
         <module>module-05-greeting-app</module>
         <module>module-06-products</module>
+        <module>module-07-storefront</module>
     </modules>
 </project>
