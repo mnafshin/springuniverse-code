@@ -43,4 +43,21 @@ class StorefrontTest {
                 .jsonPath("$[1].name").isEqualTo("Tea");
     }
 
+    @Test
+    void catalogReadsCoffeeThroughTheInterface() {
+        this.client.get().uri("/catalog/1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.name").isEqualTo("Coffee")
+                .jsonPath("$.price").isEqualTo(4.50);
+    }
+
+    @Test
+    void catalogPassesAlongNotFound() {
+        this.client.get().uri("/catalog/99")
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
 }
