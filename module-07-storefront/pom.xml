@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>module-07-storefront</artifactId>
-    <name>Module 7: the storefront calls the shop API (T7.1)</name>
+    <name>Module 7: the storefront on 8080 calls the shop API on 8081 (T7.1)</name>
 
     <dependencies>
         <dependency>
@@ -22,6 +22,12 @@
             <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>info.mnafshin.springuniverse</groupId>
+            <artifactId>module-07-shop</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
