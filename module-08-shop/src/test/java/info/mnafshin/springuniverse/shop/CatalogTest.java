@@ -28,4 +28,18 @@ class CatalogTest {
                 .andExpect(jsonPath("$[1].name").value("Tea"));
     }
 
+    @Test
+    void readsCoffeeById() throws Exception {
+        this.mvc.perform(get("/catalog/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Coffee"));
+    }
+
+    @Test
+    void missingProductIsNotFound() throws Exception {
+        this.mvc.perform(get("/catalog/99"))
+                .andExpect(status().isNotFound());
+    }
+
 }
