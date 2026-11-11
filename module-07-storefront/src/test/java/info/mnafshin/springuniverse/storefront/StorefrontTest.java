@@ -6,16 +6,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
+@AutoConfigureRestTestClient
 class StorefrontTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private RestTestClient client;
 
     @Test
     void listsCoffeeAndTea() throws Exception {
@@ -37,6 +44,16 @@ class StorefrontTest {
     void missingProductIsNotFound() throws Exception {
         this.mvc.perform(get("/products/99"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void catalogFetchesTheListOverHttp() {
+        this.client.get().uri("/catalog")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(2)
+                .jsonPath("$[0].name").isEqualTo("Coffee");
     }
 
 }
