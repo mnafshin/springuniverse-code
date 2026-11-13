@@ -53,5 +53,6 @@
         <module>module-07-shop</module>
         <module>module-07-storefront</module>
         <module>module-08-shop</module>
+        <module>module-09-shop</module>
     </modules>
 </project>
